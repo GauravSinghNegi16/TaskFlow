@@ -26,6 +26,30 @@ const trello = axios.create({
 });
 
 /* -----------------------------------------------------
+   🟦 Trello Webhook Handler
+------------------------------------------------------*/
+
+// Trello verifies webhook with a HEAD request
+app.head("/webhook", (req, res) => {
+  console.log("🔵 Trello Webhook Verified (HEAD request)");
+  res.status(200).send();
+});
+
+// Trello sends POST for every card/list event
+app.post("/webhook", (req, res) => {
+  console.log("🟣 Trello Webhook Event:", req.body);
+
+  // Broadcast event to all clients using socket.io
+  io.emit("realtime:event", {
+    type: "trello_update",
+    data: req.body,
+  });
+
+  res.status(200).send("OK");
+});
+
+
+/* -----------------------------------------------------
  🟦 GET ALL BOARDS
 --------------------------------------------------------*/
 app.get("/api/boards", async (req, res) => {

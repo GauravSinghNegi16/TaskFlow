@@ -15,7 +15,7 @@ const TaskList = ({ userBoards, loadBoard }) => {
                     place-items-center
                 "
             >
-                {userBoards?.map((board) => (
+                {userBoards.map((board) => (
                     <BoardCard
                         key={board.id}
                         board={board}
