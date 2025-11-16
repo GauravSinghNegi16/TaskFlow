@@ -1,4 +1,3 @@
-// src/socket.js
 import { io } from "socket.io-client";
 
 export const socket = io("https://taskflow-backend-mw2u.onrender.com", {
@@ -8,9 +7,9 @@ export const socket = io("https://taskflow-backend-mw2u.onrender.com", {
 
 // Log connection status
 socket.on("connect", () => {
-    console.log("🟢 Connected to WebSocket:", socket.id);
+    console.log("Connected to WebSocket:", socket.id);
 });
 
 socket.on("disconnect", () => {
-    console.log("🔴 Disconnected from WebSocket");
+    console.log("Disconnected from WebSocket");
 });

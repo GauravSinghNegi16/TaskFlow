@@ -29,12 +29,11 @@ export default function BoardDetails() {
     deleteList,
   } = useBoard();
 
-  /* ------------------ LOAD BOARD ------------------ */
   useEffect(() => {
     if (id) loadBoard(id);
   }, [id]);
 
-  /* ------------------ REALTIME HANDLER ------------------ */
+
   const handleRealtime = useCallback(
     (event) => {
       console.log("🔥 Real-time event received:", event);
@@ -46,7 +45,7 @@ export default function BoardDetails() {
         case "card:updated":
         case "card:deleted":
         case "list:created":
-          loadBoard(id); // easiest correct solution
+          loadBoard(id);
           break;
 
         default:
@@ -56,22 +55,18 @@ export default function BoardDetails() {
     [id, loadBoard]
   );
 
-  /* ------------------ CONNECT SOCKET ------------------ */
   useSocket(id, handleRealtime);
 
-  /* ------------------ FILTER LISTS ------------------ */
   const filteredLists = lists.filter(
     (l) => l.name.toLowerCase() !== "trello starter guide"
   );
 
-  /* ------------------ SORT CARDS ------------------ */
   const getListCardsSorted = (listId) =>
     cards
       .filter((c) => c.idList === listId)
       .map((c) => ({ ...c, pos: parseFloat(c.pos || 0) }))
       .sort((a, b) => (a.pos || 0) - (b.pos || 0));
 
-  /* ------------------ POS CALCULATION ------------------ */
   const computeNewPos = (destListId, destIndex) => {
     const listCards = getListCardsSorted(destListId);
 
@@ -92,7 +87,6 @@ export default function BoardDetails() {
     return (before + after) / 2;
   };
 
-  /* ------------------ DRAG END ------------------ */
   const handleDragEnd = (result) => {
     const { source, destination, draggableId } = result;
     if (!destination) return;
@@ -110,11 +104,10 @@ export default function BoardDetails() {
     updateCard(draggableId, {
       idList: destListId,
       pos: newPos,
-      boardId: id, // IMPORTANT for socket emit
+      boardId: id,
     }).catch(() => loadBoard(id));
   };
 
-  /* ------------------ UI ------------------ */
   return (
     <div
       className="min-h-screen p-4 sm:p-6"
@@ -134,7 +127,6 @@ export default function BoardDetails() {
         `}
       </style>
 
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}
@@ -148,7 +140,6 @@ export default function BoardDetails() {
         </h1>
       </div>
 
-      {/* Board Content */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 items-start scrollbar-hide">
           {filteredLists.map((list) => (
@@ -162,7 +153,6 @@ export default function BoardDetails() {
                     border border-gray-200 flex-shrink-0 group
                   "
                 >
-                  {/* List Title */}
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-lg truncate">
                       {list.name}
@@ -179,7 +169,6 @@ export default function BoardDetails() {
                     )}
                   </div>
 
-                  {/* Cards */}
                   <div className="space-y-3">
                     {getListCardsSorted(list.id).map((card, index) => (
                       <CardItem
@@ -194,7 +183,6 @@ export default function BoardDetails() {
                     {provided.placeholder}
                   </div>
 
-                  {/* Add Card */}
                   {activeListId === list.id ? (
                     <div className="mt-3">
                       <textarea
@@ -249,7 +237,6 @@ export default function BoardDetails() {
             </Droppable>
           ))}
 
-          {/* Add List */}
           <div className="w-64 sm:w-72 flex-shrink-0">
             {addingList ? (
               <div className="bg-white rounded-xl p-4 shadow-md border border-gray-300">

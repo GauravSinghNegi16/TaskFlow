@@ -2,8 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import axios from "axios";
 import cors from "cors";
-import http from "http";                // ✅ required for socket.io
-import { Server } from "socket.io";     // ✅ socket.io
+import http from "http";
+import { Server } from "socket.io";
 
 dotenv.config();
 const app = express();
@@ -14,9 +14,8 @@ app.use(express.json());
 const TRELLO_KEY = process.env.TRELLO_KEY;
 const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
 
-/* -----------------------------------------------------
- 🟦 Trello Request Wrapper
---------------------------------------------------------*/
+
+//Trello Request Wrapper
 const trello = axios.create({
   baseURL: "https://api.trello.com/1",
   params: {
@@ -25,10 +24,8 @@ const trello = axios.create({
   }
 });
 
-/* -----------------------------------------------------
-   🟦 Trello Webhook Handler
-------------------------------------------------------*/
 
+//Trello Webhook Handler
 // Trello verifies webhook with a HEAD request
 app.head("/webhook", (req, res) => {
   console.log("🔵 Trello Webhook Verified (HEAD request)");
@@ -48,10 +45,8 @@ app.post("/webhook", (req, res) => {
   res.status(200).send("OK");
 });
 
+//GET ALL BOARDS
 
-/* -----------------------------------------------------
- 🟦 GET ALL BOARDS
---------------------------------------------------------*/
 app.get("/api/boards", async (req, res) => {
   try {
     const { data } = await trello.get("/members/me/boards");
@@ -62,9 +57,8 @@ app.get("/api/boards", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 GET BOARD DATA
---------------------------------------------------------*/
+//GET BOARD DATA
+
 app.get("/api/boards/:boardId/data", async (req, res) => {
   try {
     const boardId = req.params.boardId;
@@ -87,9 +81,7 @@ app.get("/api/boards/:boardId/data", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 CREATE CARD
---------------------------------------------------------*/
+//CREATE CARD
 app.post("/api/tasks", async (req, res) => {
   try {
     const { listId, name, boardId } = req.body;
@@ -113,9 +105,7 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 UPDATE CARD
---------------------------------------------------------*/
+//UPDATE CARD
 app.put("/api/tasks/:cardId", async (req, res) => {
   try {
     const cardId = req.params.cardId;
@@ -139,9 +129,7 @@ app.put("/api/tasks/:cardId", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 DELETE CARD
---------------------------------------------------------*/
+//DELETE CARD
 app.delete("/api/tasks/:cardId", async (req, res) => {
   try {
     const cardId = req.params.cardId;
@@ -164,9 +152,7 @@ app.delete("/api/tasks/:cardId", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 CREATE LIST
---------------------------------------------------------*/
+//CREATE LIST
 app.post("/api/lists", async (req, res) => {
   try {
     const { name, boardId } = req.body;
@@ -189,9 +175,7 @@ app.post("/api/lists", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 CREATE BOARD
---------------------------------------------------------*/
+//CREATE BOARD
 app.post("/api/boards", async (req, res) => {
   try {
     const { name } = req.body;
@@ -207,33 +191,12 @@ app.post("/api/boards", async (req, res) => {
   }
 });
 
-/* -----------------------------------------------------
- 🟦 UPDATE BOARD NAME
---------------------------------------------------------*/
-app.put("/api/boards/:boardId", async (req, res) => {
-  try {
-    const boardId = req.params.boardId;
-    const { name } = req.body;
-
-    const { data } = await trello.put(`/boards/${boardId}`, null, {
-      params: { name }
-    });
-
-    res.json(data);
-  } catch (err) {
-    console.log("UPDATE BOARD ERROR:", err?.response?.data || err.message);
-    res.status(500).json({ error: "Failed to rename board" });
-  }
-});
-
-/* -----------------------------------------------------
- 🟦 SOCKET.IO SETUP
---------------------------------------------------------*/
+//SOCKET.IO SETUP
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // change to your frontend URL in production
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -257,17 +220,14 @@ io.on("connection", (socket) => {
 
 app.set("io", io);
 
-/* -----------------------------------------------------
- 🟧 TRELLLO WEBHOOK VERIFICATION (REQUIRED)
---------------------------------------------------------*/
+
+//TRELLLO WEBHOOK VERIFICATION (REQUIRED)
 app.head("/webhook", (req, res) => {
   console.log("🔵 Trello pinged webhook verification");
   return res.status(200).send();
 });
 
-/* -----------------------------------------------------
- 🟧 TRELLLO WEBHOOK RECEIVER
---------------------------------------------------------*/
+//TRELLLO WEBHOOK RECEIVER
 app.post("/webhook", (req, res) => {
   const io = req.app.get("io");
 
@@ -276,21 +236,18 @@ app.post("/webhook", (req, res) => {
 
   console.log("📩 Incoming Trello Webhook:", action?.type);
 
-  // Extract Board ID
   const boardId = action?.data?.board?.id;
 
   if (!boardId) {
     return res.status(200).send("No board ID");
   }
 
-  /* NORMALIZED EVENT FORMAT */
   const normalized = {
     boardId,
-    type: action.type, // e.g. "updateCard", "createCard"
+    type: action.type,
     trelloEvent: action,
   };
 
-  // 🔥 Broadcast to board room
   io.to(`board:${boardId}`).emit("realtime:event", {
     type: `trello:${action.type}`,
     boardId,
@@ -300,10 +257,8 @@ app.post("/webhook", (req, res) => {
   return res.status(200).send("OK");
 });
 
+//START SERVER
 
-/* -----------------------------------------------------
- 🟦 START SERVER
---------------------------------------------------------*/
 server.listen(4000, () => {
-  console.log("🚀 Server with WebSockets running on 4000");
+  console.log("Server with WebSockets running on 4000");
 });

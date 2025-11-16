@@ -13,9 +13,8 @@ export function BoardProvider({ children }) {
 
   const API = import.meta.env.VITE_API_BASE;
 
-  /* ----------------------------------------------------
-     LOAD ALL BOARDS
-  ------------------------------------------------------*/
+  //LOAD ALL BOARDS
+
   const allLoadBoards = async () => {
     try {
       const res = await axios.get(`${API}/api/boards`);
@@ -25,9 +24,8 @@ export function BoardProvider({ children }) {
     }
   };
 
-  /* ----------------------------------------------------
-     LOAD SINGLE BOARD (lists + cards + name)
-  ------------------------------------------------------*/
+  // LOAD SINGLE BOARD
+
   const loadBoard = async (id) => {
     try {
       const res = await axios.get(`${API}/api/boards/${id}/data`);
@@ -48,9 +46,8 @@ export function BoardProvider({ children }) {
     }
   };
 
-  /* ----------------------------------------------------
-     CREATE CARD
-  ------------------------------------------------------*/
+  //CREATE CARD
+
   const createCard = async (listId, name) => {
     try {
       const res = await axios.post(`${API}/api/tasks`, {
@@ -65,10 +62,8 @@ export function BoardProvider({ children }) {
     }
   };
 
-  /* ----------------------------------------------------
-     UPDATE CARD (drag, rename, move)
-     - MUST USE { idList, pos }
-  ------------------------------------------------------*/
+  //UPDATE CARD 
+
   const updateCard = async (cardId, updates) => {
     try {
       await axios.put(`${API}/api/tasks/${cardId}`, updates);
@@ -84,9 +79,8 @@ export function BoardProvider({ children }) {
     }
   };
 
-  /* ----------------------------------------------------
-     DELETE CARD
-  ------------------------------------------------------*/
+  //DELETE CARD
+
   const deleteCard = async (cardId) => {
     try {
       await axios.delete(`${API}/api/tasks/${cardId}`);
@@ -98,9 +92,9 @@ export function BoardProvider({ children }) {
     }
   };
 
-  /* ----------------------------------------------------
-     CREATE LIST
-  ------------------------------------------------------*/
+
+  //CREATE LIST
+
   const createList = async (name) => {
     try {
       const res = await axios.post(`${API}/api/lists`, {
@@ -114,30 +108,6 @@ export function BoardProvider({ children }) {
       alert("Failed to create list");
     }
   };
-
-  /* ----------------------------------------------------
-     UPDATE BOARD NAME (Rename board)
-  ------------------------------------------------------*/
-  const updateBoardName = async (newName) => {
-    try {
-      await axios.put(`${API}/api/boards/${boardId}`, {
-        name: newName,
-      });
-
-      setBoardName(newName);
-
-      // update in list view immediately
-      setUserBoards((prev) =>
-        prev.map((b) =>
-          b.id === boardId ? { ...b, name: newName } : b
-        )
-      );
-    } catch (err) {
-      console.error("RENAME BOARD ERROR:", err);
-      alert("Failed to rename board");
-    }
-  };
-
 
   const createBoard = async (name) => {
     try {
@@ -155,10 +125,6 @@ export function BoardProvider({ children }) {
     }
   };
 
-
-  /* ----------------------------------------------------
-     INIT
-  ------------------------------------------------------*/
   useEffect(() => {
     allLoadBoards();
   }, []);
@@ -176,7 +142,6 @@ export function BoardProvider({ children }) {
         updateCard,
         deleteCard,
         createList,
-        updateBoardName,
         createBoard,
       }}
     >
